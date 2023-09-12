@@ -35,7 +35,6 @@ MODULE_EXPORT const char *obs_module_name(void)
 
 extern struct obs_source_info pixel_art_plugin;
 
-
 bool obs_module_load(void)
 {
 	obs_register_source(&pixel_art_plugin);
