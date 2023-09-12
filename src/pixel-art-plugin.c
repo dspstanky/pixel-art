@@ -106,8 +106,6 @@ static void *pixel_art_plugin_create(obs_data_t *settings,
 void pixel_art_plugin_draw_frame(struct pixel_art_plugin_data *context,
 				 uint32_t w, uint32_t h)
 {
-	const enum gs_color_space current_space = gs_get_color_space();
-
 	gs_effect_t *effect = context->effect;
 
 	context->texwidth = (float)w;
