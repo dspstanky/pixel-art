@@ -2,11 +2,11 @@
 
 ## Introduction
 
-The plugin template is meant to be used as a starting point for OBS Studio plugin development. It includes:
+This plugin was developed as a learning excercise, utilizing the concepts and algorithms presented in Acerola's Color Quantization and Dithering video: https://www.youtube.com/watch?v=8wOUe32Pt-E
 
-* Boilerplate plugin source code
-* A CMake project file
-* GitHub Actions workflows and repository actions
+If you're seeing this line of text, you're here before i've made an actual release and updated the readme accordingly.
+
+haha i have never released anything before i'm sure i'll figure it out eventually and i'll only pull a few hairs from my head.
 
 ## Set Up
 
