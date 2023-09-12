@@ -288,9 +288,9 @@ static void pixel_art_plugin_defaults(obs_data_t *settings)
 {
 	obs_data_set_default_int(settings, "downscales", 0);
 	obs_data_set_default_int(settings, "bayerlevel", 0);
-	obs_data_set_default_int(settings, "redcount", 8);
-	obs_data_set_default_int(settings, "greencount", 8);
-	obs_data_set_default_int(settings, "bluecount", 8);
+	obs_data_set_default_int(settings, "redcount", 16);
+	obs_data_set_default_int(settings, "greencount", 16);
+	obs_data_set_default_int(settings, "bluecount", 16);
 	obs_data_set_default_double(settings, "ditherspread", 0.0);
 }
 
