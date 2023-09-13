@@ -1,4 +1,4 @@
-# OBS Plugin Template
+# Pixel Art
 
 ## Introduction
 
