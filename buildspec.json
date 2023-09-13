@@ -47,7 +47,7 @@
     "name": "pixel-art-plugin",
     "version": "1.0.0",
     "author": "John DSPStanky Stankiewicz",
-    "website": "https://example.com",
+    "website": "https://github.com/dspstanky/pixel-art-plugin",
     "email": "dspstanky@gmail.com",
     "uuids": {
         "macosPackage": "00000000-0000-0000-0000-000000000000",
