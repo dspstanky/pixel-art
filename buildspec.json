@@ -44,7 +44,7 @@
             "bundleId": "com.dspstanky.obs-pixelart"
         }
     },
-    "name": "pixel-art-plugin",
+    "name": "pixel-art",
     "version": "0.0.1",
     "author": "John DSPStanky Stankiewicz",
     "website": "https://github.com/dspstanky/pixel-art-plugin",
