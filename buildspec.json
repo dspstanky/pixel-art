@@ -50,8 +50,8 @@
     "website": "https://github.com/dspstanky/pixel-art-plugin",
     "email": "dspstanky@gmail.com",
     "uuids": {
-        "macosPackage": "00000000-0000-0000-0000-000000000000",
-        "macosInstaller": "00000000-0000-0000-0000-000000000000",
-        "windowsApp": "00000000-0000-0000-0000-000000000000"
+        "macosPackage": "192e5c18-7c57-4928-b0f1-45ea12383185",
+        "macosInstaller": "6971b69a-3b1d-4a56-8a51-90c2fdd47ed4",
+        "windowsApp": "6f386a90-ba5a-4ac7-a4d2-da3d1473b2b1"
     }
 }
