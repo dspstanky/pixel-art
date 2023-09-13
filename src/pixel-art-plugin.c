@@ -15,7 +15,10 @@ struct pixel_art_plugin_data {
 	gs_eparam_t *blue_color_count_param;
 	gs_eparam_t *texture_width, *texture_height;
 
+	enum gs_color_space space;
+
 	int downscales, bayer_level, red_count, green_count, blue_count;
+	uint32_t base_width, base_height;
 	float dither_spread, texwidth, texheight;
 	bool processed_frame;
 };
@@ -103,13 +106,12 @@ static void *pixel_art_plugin_create(obs_data_t *settings,
 	return filter;
 }
 
-void pixel_art_plugin_draw_frame(struct pixel_art_plugin_data *context,
-				 uint32_t w, uint32_t h)
+void pixel_art_plugin_draw_frame(struct pixel_art_plugin_data *filter)
 {
-	gs_effect_t *effect = context->effect;
+	gs_effect_t *effect = filter->effect;
 
-	context->texwidth = (float)w;
-	context->texheight = (float)h;
+	filter->texwidth = (float)filter->base_width;
+	filter->texheight = (float)filter->base_height;
 
 	gs_blend_state_push();
 	gs_blend_function(GS_BLEND_ONE, GS_BLEND_ZERO);
@@ -117,29 +119,86 @@ void pixel_art_plugin_draw_frame(struct pixel_art_plugin_data *context,
 	const bool previous = gs_framebuffer_srgb_enabled();
 	gs_enable_framebuffer_srgb(true);
 
-	gs_texture_t *tex = gs_texrender_get_texture(context->render);
+	gs_texture_t *tex = gs_texrender_get_texture(filter->render);
 	if (!tex)
 		return;
 
 	gs_effect_set_texture_srgb(gs_effect_get_param_by_name(effect, "image"),
 				   tex);
 
-	gs_effect_set_float(context->texture_width, context->texwidth);
-	gs_effect_set_float(context->texture_height, context->texheight);
-	gs_effect_set_float(context->dither_spread_param,
-			    context->dither_spread);
+	gs_effect_set_float(filter->texture_width, filter->texwidth);
+	gs_effect_set_float(filter->texture_height, filter->texheight);
+	gs_effect_set_float(filter->dither_spread_param, filter->dither_spread);
 
-	gs_effect_set_int(context->bayer_level_param, context->bayer_level);
-	gs_effect_set_int(context->red_color_count_param, context->red_count);
-	gs_effect_set_int(context->green_color_count_param,
-			  context->green_count);
-	gs_effect_set_int(context->blue_color_count_param, context->blue_count);
+	gs_effect_set_int(filter->bayer_level_param, filter->bayer_level);
+	gs_effect_set_int(filter->red_color_count_param, filter->red_count);
+	gs_effect_set_int(filter->green_color_count_param, filter->green_count);
+	gs_effect_set_int(filter->blue_color_count_param, filter->blue_count);
 
 	while (gs_effect_loop(effect, "Draw"))
-		gs_draw_sprite(tex, 0, w, h);
+		gs_draw_sprite(tex, 0, filter->base_width, filter->base_height);
 
 	gs_enable_framebuffer_srgb(previous);
 	gs_blend_state_pop();
+}
+
+void pixel_art_downscale_render(void *data, obs_source_t *target,
+				bool source_render_type)
+{
+
+	struct pixel_art_plugin_data *filter = data;
+
+	uint32_t current_width = filter->base_width;
+	uint32_t current_height = filter->base_height;
+
+	const float w = (float)filter->base_width;
+	const float h = (float)filter->base_height;
+
+	for (int i = 0; i < filter->downscales; i++) {
+
+		gs_texrender_reset(filter->render);
+
+		current_width /= 2;
+		current_height /= 2;
+
+		if (gs_texrender_begin_with_color_space(
+			    filter->render, current_width, current_height,
+			    filter->space)) {
+
+			gs_ortho(0.0f, w, 0.0f, h, -100.0f, 100.0f);
+
+			if (source_render_type) {
+				obs_source_default_render(target);
+			} else {
+				obs_source_video_render(target);
+			}
+			gs_texrender_end(filter->render);
+		}
+	}
+}
+
+void pixel_art_default_render(void *data, obs_source_t *target,
+			      bool source_render_type)
+{
+
+	struct pixel_art_plugin_data *filter = data;
+
+	gs_texrender_reset(filter->render);
+
+	if (gs_texrender_begin_with_color_space(
+		    filter->render, filter->base_width, filter->base_height,
+		    filter->space)) {
+
+		gs_ortho(0.0f, (float)filter->base_width, 0.0f,
+			 (float)filter->base_height, -100.0f, 100.0f);
+
+		if (source_render_type) {
+			obs_source_default_render(target);
+		} else {
+			obs_source_video_render(target);
+		}
+		gs_texrender_end(filter->render);
+	}
 }
 
 static void pixel_art_plugin_render(void *data, gs_effect_t *effect)
@@ -152,28 +211,21 @@ static void pixel_art_plugin_render(void *data, gs_effect_t *effect)
 	obs_source_t *target = obs_filter_get_target(filter->context);
 	obs_source_t *parent = obs_filter_get_parent(filter->context);
 
-	uint32_t base_width = obs_source_get_width(target);
-	uint32_t base_height = obs_source_get_height(target);
-	uint32_t current_width = base_width;
-	uint32_t current_height = base_height;
-
-	const float w = (float)base_width;
-	const float h = (float)base_height;
+	filter->base_width = obs_source_get_width(target);
+	filter->base_height = obs_source_get_height(target);
 
 	uint32_t parent_flags = obs_source_get_output_flags(target);
 	bool custom_draw = (parent_flags & OBS_SOURCE_CUSTOM_DRAW) != 0;
 	bool async = (parent_flags & OBS_SOURCE_ASYNC) != 0;
+	bool source_render_type = (target == parent && !custom_draw && !async);
 
-	struct vec4 clear_color;
-	vec4_zero(&clear_color);
-
-	if (!base_width || !base_height || !target || !parent) {
+	if (!filter->base_width || !filter->base_height || !target || !parent) {
 		obs_source_skip_video_filter(filter->context);
 		return;
 	}
 
 	if (filter->processed_frame) {
-		pixel_art_plugin_draw_frame(filter, base_width, base_height);
+		pixel_art_plugin_draw_frame(filter);
 		return;
 	}
 
@@ -186,6 +238,7 @@ static void pixel_art_plugin_render(void *data, gs_effect_t *effect)
 	const enum gs_color_space space = obs_source_get_color_space(
 		target, OBS_COUNTOF(preferred_spaces), preferred_spaces);
 	const enum gs_color_format format = gs_get_format_from_space(space);
+	filter->space = space;
 
 	if (!filter->render ||
 	    gs_texrender_get_format(filter->render) != format) {
@@ -196,56 +249,19 @@ static void pixel_art_plugin_render(void *data, gs_effect_t *effect)
 	}
 
 	gs_blend_state_push();
-	gs_blend_function(GS_BLEND_ONE, GS_BLEND_ZERO);
-
-	for (int i = 0; i < filter->downscales; i++) {
-
-		gs_texrender_reset(filter->render);
-
-		current_width /= 2;
-		current_height /= 2;
-
-		if (gs_texrender_begin_with_color_space(
-			    filter->render, current_width, current_height,
-			    space)) {
-
-			gs_clear(GS_CLEAR_COLOR, &clear_color, 0.0f, 0);
-			gs_ortho(0.0f, w, 0.0f, h, -100.0f, 100.0f);
-
-			if (target == parent && !custom_draw && !async) {
-				obs_source_default_render(target);
-			} else {
-				obs_source_video_render(target);
-			}
-			gs_texrender_end(filter->render);
-		}
-	}
+	gs_blend_function(GS_BLEND_ONE, GS_BLEND_ONE);
 
 	if (filter->downscales == 0) {
-
-		gs_texrender_reset(filter->render);
-
-		if (gs_texrender_begin_with_color_space(
-			    filter->render, current_width, current_height,
-			    space)) {
-
-			gs_clear(GS_CLEAR_COLOR, &clear_color, 0.0f, 0);
-			gs_ortho(0.0f, w, 0.0f, h, -100.0f, 100.0f);
-
-			if (target == parent && !custom_draw && !async) {
-				obs_source_default_render(target);
-			} else {
-				obs_source_video_render(target);
-			}
-			gs_texrender_end(filter->render);
-		}
+		pixel_art_default_render(filter, target, source_render_type);
+	} else {
+		pixel_art_downscale_render(filter, target, source_render_type);
 	}
 
 	gs_blend_state_pop();
 
 	filter->processed_frame = true;
 
-	pixel_art_plugin_draw_frame(filter, base_width, base_height);
+	pixel_art_plugin_draw_frame(filter);
 }
 
 static obs_properties_t *pixel_art_plugin_properties(void *data)
