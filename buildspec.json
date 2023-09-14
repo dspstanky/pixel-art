@@ -41,7 +41,7 @@
     },
     "platformConfig": {
         "macos": {
-            "bundleId": "com.dspstanky.obs-pixelart"
+            "bundleId": "com.dspstanky.pixelart"
         }
     },
     "name": "pixel-art",
