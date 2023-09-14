@@ -147,8 +147,5 @@ runs:
         : Notarization 🧑‍💼
         if (( ${+RUNNER_DEBUG} )) setopt XTRACE
 
-        if [[ ${MACOS_NOTARIZATION_USERNAME} && ${MACOS_NOTARIZATION_PASSWORD} ]] {
-          print 'haveNotarizationUser=true' >> $GITHUB_OUTPUT
-        } else {
-          print 'haveNotarizationUser=false' >> $GITHUB_OUTPUT
-        }
+        print 'haveNotarizationUser=false' >> $GITHUB_OUTPUT
+        
