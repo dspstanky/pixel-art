@@ -41,13 +41,13 @@
     },
     "platformConfig": {
         "macos": {
-            "bundleId": "com.dspstanky.obs-pixelart"
+            "bundleId": "com.dspstanky.pixelart"
         }
     },
-    "name": "pixel-art-plugin",
-    "version": "1.0.0",
+    "name": "pixel-art",
+    "version": "0.0.2",
     "author": "John DSPStanky Stankiewicz",
-    "website": "https://github.com/dspstanky/pixel-art-plugin",
+    "website": "https://github.com/dspstanky/pixel-art",
     "email": "dspstanky@gmail.com",
     "uuids": {
         "macosPackage": "192e5c18-7c57-4928-b0f1-45ea12383185",
