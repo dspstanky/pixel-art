@@ -37,10 +37,8 @@ float4 PSDither(VertData v_in) : TARGET
 	int y = int(v_in.uv.y * texelHeight);
 
 	//------Hardcoded Bayer Dithering Arrays------//
-	int bayer2[4] = {
-		0, 2,
-		3, 1
-	};
+
+	int4 bayer2 = int4(0,2,3,1);
 
 	int bayer4[16] = {
 		0, 8, 2, 10,
@@ -60,7 +58,7 @@ float4 PSDither(VertData v_in) : TARGET
 		63, 31, 55, 23, 61, 29, 53, 21
 	};
 
-	float3 bayerValues = { 0.0, 0.0, 0.0 };
+	float3 bayerValues = float3(0.0f,0.0f,0.0f);
 	bayerValues.x = float(bayer2[(x % 2) + (y % 2) * 2]) * (1.0f / 4.0f) - 0.5f;
 	bayerValues.y = float(bayer4[(x % 4) + (y % 4) * 4]) * (1.0f / 16.0f) - 0.5f;
 	bayerValues.z = float(bayer8[(x % 8) + (y % 8) * 8]) * (1.0f / 64.0f) - 0.5f;
