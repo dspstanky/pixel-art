@@ -33,8 +33,8 @@ float4 PSDither(VertData v_in) : TARGET
 {
 	float4 col = image.Sample(textureSampler, v_in.uv);
 
-	int x = v_in.uv.x * texelWidth;
-	int y = v_in.uv.y * texelHeight;
+	int x = asint(v_in.uv.x * texelWidth);
+	int y = asint(v_in.uv.y * texelHeight);
 
 	//------Hardcoded Bayer Dithering Arrays------//
 	int bayer2[4] = {
@@ -65,13 +65,13 @@ float4 PSDither(VertData v_in) : TARGET
 	bayerValues.y = float(bayer4[(x % 4) + (y % 4) * 4]) * (1.0f / 16.0f) - 0.5f;
 	bayerValues.z = float(bayer8[(x % 8) + (y % 8) * 8]) * (1.0f / 64.0f) - 0.5f;
 
-	float4 output = col + spread * bayerValues[bayerLevel];
+	float4 result = col + spread * bayerValues[bayerLevel];
 
-	output.x = floor((redColorCount - 1.0) * output.x + 0.5) / (redColorCount - 1.0);
-	output.y = floor((greenColorCount - 1.0) * output.y + 0.5) / (greenColorCount - 1.0);
-	output.z = floor((blueColorCount - 1.0) * output.z + 0.5) / (blueColorCount - 1.0);
+	result.x = floor((redColorCount - 1.0) * result.x + 0.5) / (redColorCount - 1.0);
+	result.y = floor((greenColorCount - 1.0) * result.y + 0.5) / (greenColorCount - 1.0);
+	result.z = floor((blueColorCount - 1.0) * result.z + 0.5) / (blueColorCount - 1.0);
 
-	return output;
+	return result;
 }
 
 technique Draw
