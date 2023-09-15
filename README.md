@@ -6,7 +6,7 @@ This plugin was developed as a learning excercise, utilizing the concepts and al
 
 ### Notes
 
-As stated before, this plugin was done as a learning excercise. I have plans to expand on it, as well as optimize, however it may not be a high priority so updates will be made when possible and motivated.
+As stated before, this plugin was done as a learning excercise. I have plans to expand on it, as well as optimize, and will try to fix bugs or other issues when I can.
 
 ### Usage
 
