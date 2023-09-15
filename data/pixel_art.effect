@@ -29,6 +29,83 @@ VertData VSDefault(VertData v_in)
 	return vert_out;
 }
 
+int getBayer4(int val) {
+	
+	int4 bayer4[4];
+
+	bayer4[0] = int4(0, 8, 2, 10);
+	bayer4[1] = int4(12, 4, 14, 6);
+	bayer4[2] = int4(3, 11, 1, 9);
+	bayer4[3] = int4(15, 7, 13, 5);
+
+	if (val > 11) {
+		return bayer4[3][val-11];
+	} else if (val > 7) {
+		return bayer4[2][val-7];
+	} else if (val > 3) {
+		return bayer4[1][val-3];
+	} else {
+		return bayer4[0][val];
+	} 
+
+}
+
+int getBayer8(int val) {
+
+	int4 bayer8[16];
+
+	bayer8[0] = int4(0, 32, 8, 40);
+	bayer8[1] = int4(2, 34, 10, 42);
+	bayer8[2] = int4(48, 16, 56, 24);
+	bayer8[3] = int4(50, 18, 58, 26);
+	bayer8[4] = int4(12, 44,  4, 36);
+	bayer8[5] = int4(14, 46,  6, 38);
+	bayer8[6] = int4(60, 28, 52, 20);
+	bayer8[7] = int4(62, 30, 54, 22);
+	bayer8[8] = int4(3, 35, 11, 43);
+	bayer8[9] = int4(1, 33,  9, 41);
+	bayer8[10] = int4(51, 19, 59, 27);
+	bayer8[11] = int4(49, 17, 57, 25);
+	bayer8[12] = int4(15, 47,  7, 39);
+	bayer8[13] = int4(13, 45,  5, 37);
+	bayer8[14] = int4(63, 31, 55, 23);
+	bayer8[15] = int4(61, 29, 53, 21);
+
+	if (val > 59) {
+		return bayer8[15][val-59];
+	} else if (val > 55) {
+		return bayer8[14][val-55];
+	} else if (val > 51) {
+		return bayer8[13][val-51];
+	} else if (val > 47) {
+		return bayer8[12][val-47];
+	} else if (val > 43) {
+		return bayer8[11][val-43];
+	} else if (val > 39) {
+		return bayer8[10][val-39];
+	} else if (val > 35) {
+		return bayer8[9][val-35];
+	} else if (val > 31) {
+		return bayer8[8][val-31];
+	} else if (val > 27) {
+		return bayer8[7][val-27];
+	} else if (val > 23) {
+		return bayer8[6][val-23];
+	} else if (val > 19) {
+		return bayer8[5][val-19];
+	} else if (val > 15) {
+		return bayer8[4][val-15];
+	} else if (val > 11) {
+		return bayer8[3][val-11];
+	} else if (val > 7) {
+		return bayer8[2][val-7];
+	} else if (val > 3) {
+		return bayer8[1][val-3];
+	} else {
+		return bayer8[0][val];
+	}
+}
+
 float4 PSDither(VertData v_in) : TARGET 
 {
 	float4 col = image.Sample(textureSampler, v_in.uv);
@@ -36,32 +113,35 @@ float4 PSDither(VertData v_in) : TARGET
 	int x = int(v_in.uv.x * texelWidth);
 	int y = int(v_in.uv.y * texelHeight);
 
-	//------Hardcoded Bayer Dithering Arrays------//
-
 	int4 bayer2 = int4(0,2,3,1);
 
-	int bayer4[16] = {
-		0, 8, 2, 10,
-		12, 4, 14, 6,
-		3, 11, 1, 9,
-		15, 7, 13, 5
-	};
-
-	int bayer8[64] = {
-		0, 32, 8, 40, 2, 34, 10, 42,
-		48, 16, 56, 24, 50, 18, 58, 26,  
-		12, 44,  4, 36, 14, 46,  6, 38, 
-		60, 28, 52, 20, 62, 30, 54, 22,  
-		3, 35, 11, 43,  1, 33,  9, 41,  
-		51, 19, 59, 27, 49, 17, 57, 25, 
-		15, 47,  7, 39, 13, 45,  5, 37, 
-		63, 31, 55, 23, 61, 29, 53, 21
-	};
+//	int bayer4[16] = {
+//		0, 8, 2, 10,
+//		12, 4, 14, 6,
+//		3, 11, 1, 9,
+//		15, 7, 13, 5
+//	};
+// these arrays would have been so much nicer but the linux version of this plugin hates them
+//	int bayer8[64] = {
+//		0, 32, 8, 40, 2, 34, 10, 42,
+//		48, 16, 56, 24, 50, 18, 58, 26,  
+//		12, 44,  4, 36, 14, 46,  6, 38, 
+//		60, 28, 52, 20, 62, 30, 54, 22,  
+//		3, 35, 11, 43,  1, 33,  9, 41,  
+//		51, 19, 59, 27, 49, 17, 57, 25, 
+//		15, 47,  7, 39, 13, 45,  5, 37, 
+//		63, 31, 55, 23, 61, 29, 53, 21
+//	};
 
 	float3 bayerValues = float3(0.0f,0.0f,0.0f);
-	bayerValues.x = float(bayer2[(x % 2) + (y % 2) * 2]) * (1.0f / 4.0f) - 0.5f;
-	bayerValues.y = float(bayer4[(x % 4) + (y % 4) * 4]) * (1.0f / 16.0f) - 0.5f;
-	bayerValues.z = float(bayer8[(x % 8) + (y % 8) * 8]) * (1.0f / 64.0f) - 0.5f;
+
+	if(bayerLevel == 0) {
+		bayerValues.x = float(bayer2[(x % 2) + (y % 2) * 2]) * (1.0f / 4.0f) - 0.5f;
+	} else if(bayerLevel == 1) {
+		bayerValues.y = float(getBayer4((x % 4) + (y % 4) * 4)) * (1.0f / 16.0f) - 0.5f;
+	} else {
+		bayerValues.z = float(getBayer8((x % 8) + (y % 8) * 8)) * (1.0f / 64.0f) - 0.5f;
+	}
 
 	float4 result = col + spread * bayerValues[bayerLevel];
 
