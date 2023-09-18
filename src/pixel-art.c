@@ -9,7 +9,6 @@ struct pixel_art_plugin_data {
 	gs_texrender_t *render;
 
 	gs_eparam_t *dither_spread_param;
-	gs_eparam_t *bayer_level_param;
 	gs_eparam_t *red_color_count_param;
 	gs_eparam_t *green_color_count_param;
 	gs_eparam_t *blue_color_count_param;
@@ -75,9 +74,6 @@ static void *pixel_art_plugin_create(obs_data_t *settings,
 		filter->dither_spread_param =
 			gs_effect_get_param_by_name(filter->effect, "spread");
 
-		filter->bayer_level_param = gs_effect_get_param_by_name(
-			filter->effect, "bayerLevel");
-
 		filter->red_color_count_param = gs_effect_get_param_by_name(
 			filter->effect, "redColorCount");
 
@@ -129,14 +125,20 @@ void pixel_art_plugin_draw_frame(struct pixel_art_plugin_data *filter)
 	gs_effect_set_float(filter->texture_width, filter->texwidth);
 	gs_effect_set_float(filter->texture_height, filter->texheight);
 	gs_effect_set_float(filter->dither_spread_param, filter->dither_spread);
-
-	gs_effect_set_int(filter->bayer_level_param, filter->bayer_level);
 	gs_effect_set_int(filter->red_color_count_param, filter->red_count);
 	gs_effect_set_int(filter->green_color_count_param, filter->green_count);
 	gs_effect_set_int(filter->blue_color_count_param, filter->blue_count);
 
-	while (gs_effect_loop(effect, "Draw"))
-		gs_draw_sprite(tex, 0, filter->base_width, filter->base_height);
+	if(filter->bayer_level == 0){
+		while (gs_effect_loop(effect, "Draw"))
+			gs_draw_sprite(tex, 0, filter->base_width, filter->base_height);
+	} else if (filter->bayer_level == 1) {
+		while (gs_effect_loop(effect, "Draw4"))
+			gs_draw_sprite(tex, 0, filter->base_width, filter->base_height);
+	} else {
+		while (gs_effect_loop(effect, "Draw8"))
+			gs_draw_sprite(tex, 0, filter->base_width, filter->base_height);
+	}
 
 	gs_enable_framebuffer_srgb(previous);
 	gs_blend_state_pop();

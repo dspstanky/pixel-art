@@ -8,7 +8,6 @@ uniform float spread;
 uniform int redColorCount;
 uniform int greenColorCount;
 uniform int blueColorCount;
-uniform int bayerLevel;
 
 sampler_state textureSampler {
 	Filter   	= Point;
@@ -38,15 +37,10 @@ int getBayer4(int val) {
 	bayer4[2] = int4(3, 11, 1, 9);
 	bayer4[3] = int4(15, 7, 13, 5);
 
-	if (val > 11) {
-		return bayer4[3][val-11];
-	} else if (val > 7) {
-		return bayer4[2][val-7];
-	} else if (val > 3) {
-		return bayer4[1][val-3];
-	} else {
-		return bayer4[0][val];
-	} 
+	int idx = int(val*0.25);
+	int idy = (idx * 4) - 1;
+
+	return bayer4[idx][val-idy];
 
 }
 
@@ -71,42 +65,14 @@ int getBayer8(int val) {
 	bayer8[14] = int4(63, 31, 55, 23);
 	bayer8[15] = int4(61, 29, 53, 21);
 
-	if (val > 59) {
-		return bayer8[15][val-59];
-	} else if (val > 55) {
-		return bayer8[14][val-55];
-	} else if (val > 51) {
-		return bayer8[13][val-51];
-	} else if (val > 47) {
-		return bayer8[12][val-47];
-	} else if (val > 43) {
-		return bayer8[11][val-43];
-	} else if (val > 39) {
-		return bayer8[10][val-39];
-	} else if (val > 35) {
-		return bayer8[9][val-35];
-	} else if (val > 31) {
-		return bayer8[8][val-31];
-	} else if (val > 27) {
-		return bayer8[7][val-27];
-	} else if (val > 23) {
-		return bayer8[6][val-23];
-	} else if (val > 19) {
-		return bayer8[5][val-19];
-	} else if (val > 15) {
-		return bayer8[4][val-15];
-	} else if (val > 11) {
-		return bayer8[3][val-11];
-	} else if (val > 7) {
-		return bayer8[2][val-7];
-	} else if (val > 3) {
-		return bayer8[1][val-3];
-	} else {
-		return bayer8[0][val];
-	}
+	int idx = int(val*0.25);
+	int idy = (idx * 4) - 1;
+
+	return bayer8[idx][val-idy];
+
 }
 
-float4 PSDither(VertData v_in) : TARGET 
+float4 PSDitherBayer2(VertData v_in) : TARGET 
 {
 	float4 col = image.Sample(textureSampler, v_in.uv);
 
@@ -115,35 +81,52 @@ float4 PSDither(VertData v_in) : TARGET
 
 	int4 bayer2 = int4(0,2,3,1);
 
-//	int bayer4[16] = {
-//		0, 8, 2, 10,
-//		12, 4, 14, 6,
-//		3, 11, 1, 9,
-//		15, 7, 13, 5
-//	};
-// these arrays would have been so much nicer but the linux version of this plugin hates them
-//	int bayer8[64] = {
-//		0, 32, 8, 40, 2, 34, 10, 42,
-//		48, 16, 56, 24, 50, 18, 58, 26,  
-//		12, 44,  4, 36, 14, 46,  6, 38, 
-//		60, 28, 52, 20, 62, 30, 54, 22,  
-//		3, 35, 11, 43,  1, 33,  9, 41,  
-//		51, 19, 59, 27, 49, 17, 57, 25, 
-//		15, 47,  7, 39, 13, 45,  5, 37, 
-//		63, 31, 55, 23, 61, 29, 53, 21
-//	};
+	float bayerValue = 0.0f;
 
-	float3 bayerValues = float3(0.0f,0.0f,0.0f);
 
-	if(bayerLevel == 0) {
-		bayerValues.x = float(bayer2[(x % 2) + (y % 2) * 2]) * (1.0f / 4.0f) - 0.5f;
-	} else if(bayerLevel == 1) {
-		bayerValues.y = float(getBayer4((x % 4) + (y % 4) * 4)) * (1.0f / 16.0f) - 0.5f;
-	} else {
-		bayerValues.z = float(getBayer8((x % 8) + (y % 8) * 8)) * (1.0f / 64.0f) - 0.5f;
-	}
+	bayerValue = float(bayer2[(x % 2) + (y % 2) * 2]) * (1.0f / 4.0f) - 0.5f;
 
-	float4 result = col + spread * bayerValues[bayerLevel];
+
+	float4 result = col + spread * bayerValue;
+
+	result.x = floor((redColorCount - 1.0) * result.x + 0.5) / (redColorCount - 1.0);
+	result.y = floor((greenColorCount - 1.0) * result.y + 0.5) / (greenColorCount - 1.0);
+	result.z = floor((blueColorCount - 1.0) * result.z + 0.5) / (blueColorCount - 1.0);
+
+	return result;
+}
+
+float4 PSDitherBayer4(VertData v_in) : TARGET 
+{
+	float4 col = image.Sample(textureSampler, v_in.uv);
+
+	int x = int(v_in.uv.x * texelWidth);
+	int y = int(v_in.uv.y * texelHeight);
+
+	float bayerValue = 0.0f;
+	bayerValue = float(getBayer4((x % 4) + (y % 4) * 4)) * (1.0f / 16.0f) - 0.5f;
+
+	float4 result = col + spread * bayerValue;
+
+	result.x = floor((redColorCount - 1.0) * result.x + 0.5) / (redColorCount - 1.0);
+	result.y = floor((greenColorCount - 1.0) * result.y + 0.5) / (greenColorCount - 1.0);
+	result.z = floor((blueColorCount - 1.0) * result.z + 0.5) / (blueColorCount - 1.0);
+
+	return result;
+}
+
+float4 PSDitherBayer8(VertData v_in) : TARGET 
+{
+	float4 col = image.Sample(textureSampler, v_in.uv);
+
+	int x = int(v_in.uv.x * texelWidth);
+	int y = int(v_in.uv.y * texelHeight);
+
+
+	float bayerValue = 0.0f;
+	bayerValue = float(getBayer8((x % 8) + (y % 8) * 8)) * (1.0f / 64.0f) - 0.5f;
+	
+	float4 result = col + spread * bayerValue;
 
 	result.x = floor((redColorCount - 1.0) * result.x + 0.5) / (redColorCount - 1.0);
 	result.y = floor((greenColorCount - 1.0) * result.y + 0.5) / (greenColorCount - 1.0);
@@ -157,6 +140,24 @@ technique Draw
 	pass
 	{
 		vertex_shader = VSDefault(v_in);
-		pixel_shader  = PSDither(v_in);
+		pixel_shader  = PSDitherBayer2(v_in);
+	}
+}
+
+technique Draw4
+{
+	pass
+	{
+		vertex_shader = VSDefault(v_in);
+		pixel_shader  = PSDitherBayer4(v_in);
+	}
+}
+
+technique Draw8
+{
+	pass
+	{
+		vertex_shader = VSDefault(v_in);
+		pixel_shader  = PSDitherBayer8(v_in);
 	}
 }
