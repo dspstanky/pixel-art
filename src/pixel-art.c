@@ -129,15 +129,18 @@ void pixel_art_plugin_draw_frame(struct pixel_art_plugin_data *filter)
 	gs_effect_set_int(filter->green_color_count_param, filter->green_count);
 	gs_effect_set_int(filter->blue_color_count_param, filter->blue_count);
 
-	if(filter->bayer_level == 0){
+	if (filter->bayer_level == 0) {
 		while (gs_effect_loop(effect, "Draw"))
-			gs_draw_sprite(tex, 0, filter->base_width, filter->base_height);
+			gs_draw_sprite(tex, 0, filter->base_width,
+				       filter->base_height);
 	} else if (filter->bayer_level == 1) {
 		while (gs_effect_loop(effect, "Draw4"))
-			gs_draw_sprite(tex, 0, filter->base_width, filter->base_height);
+			gs_draw_sprite(tex, 0, filter->base_width,
+				       filter->base_height);
 	} else {
 		while (gs_effect_loop(effect, "Draw8"))
-			gs_draw_sprite(tex, 0, filter->base_width, filter->base_height);
+			gs_draw_sprite(tex, 0, filter->base_width,
+				       filter->base_height);
 	}
 
 	gs_enable_framebuffer_srgb(previous);

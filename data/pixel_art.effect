@@ -82,10 +82,7 @@ float4 PSDitherBayer2(VertData v_in) : TARGET
 	int4 bayer2 = int4(0,2,3,1);
 
 	float bayerValue = 0.0f;
-
-
 	bayerValue = float(bayer2[(x % 2) + (y % 2) * 2]) * (1.0f / 4.0f) - 0.5f;
-
 
 	float4 result = col + spread * bayerValue;
 
@@ -121,7 +118,6 @@ float4 PSDitherBayer8(VertData v_in) : TARGET
 
 	int x = int(v_in.uv.x * texelWidth);
 	int y = int(v_in.uv.y * texelHeight);
-
 
 	float bayerValue = 0.0f;
 	bayerValue = float(getBayer8((x % 8) + (y % 8) * 8)) * (1.0f / 64.0f) - 0.5f;
