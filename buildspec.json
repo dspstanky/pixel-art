@@ -34,9 +34,9 @@
     "tools": {
         "packages": {
             "version": "1.2.10",
-            "baseUrl": "http://s.sudre.free.fr/Software/files/Packages_1210_1.dmg",
+            "baseUrl": "https://web.archive.org/web/20230727054218/http://s.sudre.free.fr/Software/files/Packages.dmg)",
             "label": "Packages.app",
-            "hash": "3cdde1d4dcf426eb9cfccab9ac0a98b3a929fa8d256d9ab4ed4d3544edacba26"
+            "hash": "a724f2dd44aabf9ae68c17ebac89ea08ef4d65ce4e50981eb93195d0b553bf44"
         }
     },
     "platformConfig": {
