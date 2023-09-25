@@ -254,7 +254,7 @@ static void pixel_art_plugin_render(void *data, gs_effect_t *effect)
 	}
 
 	gs_blend_state_push();
-	gs_blend_function(GS_BLEND_ONE, GS_BLEND_ONE);
+	gs_blend_function(GS_BLEND_ONE, GS_BLEND_ZERO);
 
 	if (filter->downscales == 0) {
 		pixel_art_default_render(filter, target, source_render_type);
