@@ -110,7 +110,7 @@ void pixel_art_plugin_draw_frame(struct pixel_art_plugin_data *filter)
 	filter->texheight = (float)filter->base_height;
 
 	gs_blend_state_push();
-	gs_blend_function(GS_BLEND_ONE, GS_BLEND_ZERO);
+	gs_blend_function(GS_BLEND_ONE, GS_BLEND_INVSRCALPHA);
 
 	const bool previous = gs_framebuffer_srgb_enabled();
 	gs_enable_framebuffer_srgb(true);
@@ -253,6 +253,7 @@ static void pixel_art_plugin_render(void *data, gs_effect_t *effect)
 		gs_texrender_reset(filter->render);
 	}
 
+	gs_viewport_push();
 	gs_blend_state_push();
 	gs_blend_function(GS_BLEND_ONE, GS_BLEND_ZERO);
 
@@ -263,6 +264,7 @@ static void pixel_art_plugin_render(void *data, gs_effect_t *effect)
 	}
 
 	gs_blend_state_pop();
+	gs_viewport_pop();
 
 	filter->processed_frame = true;
 
